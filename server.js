@@ -1,17 +1,23 @@
 const express = require('express');
 const path = require('path');
+const http = require('http');
 const session = require('express-session');
+const { Server } = require("socket.io");
 
 const app = express();
-const PORT = process.env.PORT || 3000;  // Para que funcione en Render
+const server = http.createServer(app);
+const io = new Server(server);
 
-// Usuarios hardcodeados
+const PORT = process.env.PORT || 3000;
+
 const users = [
     { username: 'admin', password: 'admin123', role: 'admin' },
     { username: 'cliente', password: 'cliente123', role: 'client' },
 ];
 
-// Middlewares
+// Productos almacenados en memoria (para ejemplo simple)
+let productos = [];
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(
@@ -50,22 +56,35 @@ function authRole(role) {
     };
 }
 
-// Rutas protegidas
 app.get('/admin.html', authRole('admin'), (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
-app.get('/client.html', authRole('client'), (req, res) => {
+app.get('/cliente.html', authRole('client'), (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'cliente.html'));
 });
 
-// Logout
 app.get('/logout', (req, res) => {
     req.session.destroy(() => {
         res.redirect('/login.html');
     });
 });
 
-app.listen(PORT, () => {
+// Socket.IO comunicación
+io.on('connection', (socket) => {
+    console.log('Usuario conectado:', socket.id);
+
+    // Cuando un cliente (cliente.html) se conecta, le enviamos la lista actual de productos
+    socket.emit('productosActualizados', productos);
+
+    // Escuchamos cuando admin agrega un producto
+    socket.on('nuevoProducto', (producto) => {
+        productos.push(producto);
+        // Enviar la lista actualizada a todos los clientes conectados
+        io.emit('productosActualizados', productos);
+    });
+});
+
+server.listen(PORT, () => {
     console.log(`Servidor escuchando en puerto ${PORT}`);
 });
