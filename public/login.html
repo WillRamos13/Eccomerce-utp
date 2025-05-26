@@ -3,51 +3,47 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Inicio de sesi�n</title>
-    <link rel="stylesheet" href="style.css" />
-</head>
-<body>
-    <h2>Iniciar sesi�n</h2>
-    <form id="loginForm">
-        <label for="username">Usuario:</label>
-        <input type="text" id="username" name="username" required />
+    <title>Inicio de sesión</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
 
-        <label for="password">Contrase�a:</label>
-        <input type="password" id="password" name="password" required />
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
-        <button type="submit">Entrar</button>
-    </form>
-    <p id="errorMsg" style="color:red;"></p>
+        .login-container {
+            background: #fff;
+            padding: 2.5rem 3rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            width: 90%;
+            max-width: 400px;
+        }
 
-    <script>
-        const form = document.getElementById('loginForm');
-        const errorMsg = document.getElementById('errorMsg');
+        h2 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 1.5rem;
+        }
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
+        form label {
+            display: block;
+            margin-bottom: 0.4rem;
+            color: #333;
+            font-weight: 600;
+        }
 
-            const username = form.username.value;
-            const password = form.password.value;
-
-            const response = await fetch('/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password }),
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                // Redirigir seg�n rol
-                if (data.role === 'admin') {
-                    window.location.href = '/admin.html';
-                } else if (data.role === 'client') {
-                    window.location.href = '/cliente.html';
-                }
-            } else {
-                errorMsg.textContent = data.message;
-            }
-        });
-    </script>
-</body>
-</html>
+        form input {
+            width: 100%;
+            padding: 0.6rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ccc;
