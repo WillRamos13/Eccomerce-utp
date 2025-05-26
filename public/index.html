@@ -3,11 +3,62 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>P�gina principal</title>
+    <title>Página Principal</title>
     <link rel="stylesheet" href="style.css" />
+    <style>
+        /* Estilos simples y limpios para mejorar la interfaz */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f4f8;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        p {
+            font-size: 1.2rem;
+            color: #555;
+        }
+
+        a {
+            color: #2980b9;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+            a:hover {
+                color: #1c5980;
+                text-decoration: underline;
+            }
+
+        /* Contenedor para el contenido */
+        .container {
+            background: white;
+            padding: 2rem 3rem;
+            border-radius: 8px;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+            max-width: 400px;
+            width: 90%;
+        }
+    </style>
 </head>
 <body>
-    <h1>Bienvenido a la p�gina</h1>
-    <p>Por favor, <a href="/login.html">inicia sesi�n</a> para continuar.</p>
+    <div class="container">
+        <h1>Bienvenido a la página</h1>
+        <p>Por favor, <a href="/login.html">inicia sesión</a> para continuar.</p>
+    </div>
 </body>
 </html>
