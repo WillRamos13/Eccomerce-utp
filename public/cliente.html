@@ -2,11 +2,142 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8" />
-    <title>Panel Cliente</title>
+    <title>Panel Cliente - Tienda Online</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        header {
+            background-color: #007bff;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .container {
+            display: flex;
+            gap: 2rem;
+            padding: 2rem;
+        }
+
+        .products, .cart {
+            flex: 1;
+            background-color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .product {
+            border-bottom: 1px solid #ddd;
+            padding: 1rem 0;
+        }
+
+            .product h3 {
+                margin: 0;
+            }
+
+        button {
+            padding: 0.5rem 1rem;
+            background-color: #28a745;
+            border: none;
+            color: white;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+            button:hover {
+                background-color: #218838;
+            }
+
+        .cart ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .cart li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #ccc;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 2rem;
+        }
+
+        a {
+            color: #007bff;
+        }
+    </style>
 </head>
 <body>
-    <h1>Bienvenido, Cliente</h1>
-    <p>Esta es la p�gina del cliente.</p>
-    <a href="/logout">Cerrar sesi�n</a>
+    <header>
+        <h1>Bienvenido, Cliente</h1>
+        <p><a href="/logout" style="color: white;">Cerrar sesión</a></p>
+    </header>
+    <div class="container">
+        <div class="products">
+            <h2>Productos disponibles</h2>
+            <div class="product">
+                <h3>Producto 1</h3>
+                <p>Descripción del producto 1.</p>
+                <p>Precio: $10</p>
+                <button onclick="addToCart('Producto 1', 10)">Agregar al carrito</button>
+            </div>
+            <div class="product">
+                <h3>Producto 2</h3>
+                <p>Descripción del producto 2.</p>
+                <p>Precio: $15</p>
+                <button onclick="addToCart('Producto 2', 15)">Agregar al carrito</button>
+            </div>
+            <!-- Puedes agregar más productos aquí -->
+        </div>
+
+        <div class="cart">
+            <h2>Carrito de compras</h2>
+            <ul id="cart-items"></ul>
+            <p><strong>Total:</strong> $<span id="cart-total">0</span></p>
+            <button onclick="checkout()">Finalizar compra</button>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Tienda Online</p>
+    </footer>
+
+    <script>
+        const cartItems = [];
+        function addToCart(product, price) {
+            cartItems.push({ product, price });
+            updateCart();
+        }
+
+        function updateCart() {
+            const cartList = document.getElementById("cart-items");
+            cartList.innerHTML = "";
+            let total = 0;
+            cartItems.forEach(item => {
+                const li = document.createElement("li");
+                li.textContent = `${item.product} - $${item.price}`;
+                cartList.appendChild(li);
+                total += item.price;
+            });
+            document.getElementById("cart-total").textContent = total.toFixed(2);
+        }
+
+        function checkout() {
+            if (cartItems.length === 0) {
+                alert("El carrito está vacío.");
+                return;
+            }
+            alert("Compra realizada con éxito. Gracias por su pedido.");
+            cartItems.length = 0;
+            updateCart();
+        }
+    </script>
 </body>
 </html>
