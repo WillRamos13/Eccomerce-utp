@@ -56,7 +56,7 @@ app.get('/admin.html', authRole('admin'), (req, res) => {
 });
 
 app.get('/client.html', authRole('client'), (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'client.html'));
+    res.sendFile(path.join(__dirname, 'public', 'cliente.html'));
 });
 
 // Logout
