@@ -6,40 +6,19 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 0 20px;
         }
 
-        header {
-            background-color: #007bff;
-            color: white;
-            padding: 1rem;
+        h1, h2 {
             text-align: center;
-        }
-
-        .container {
-            display: flex;
-            gap: 2rem;
-            padding: 2rem;
-        }
-
-        .products, .cart {
-            flex: 1;
-            background-color: white;
-            padding: 1rem;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
 
         .product {
             border-bottom: 1px solid #ddd;
-            padding: 1rem 0;
+            padding: 10px 0;
         }
-
-            .product h3 {
-                margin: 0;
-            }
 
         button {
             padding: 0.5rem 1rem;
@@ -54,87 +33,91 @@
                 background-color: #218838;
             }
 
-        .cart ul {
-            list-style: none;
-            padding: 0;
+        .cart {
+            margin-top: 30px;
         }
 
-        .cart li {
-            padding: 0.5rem 0;
-            border-bottom: 1px solid #ccc;
-        }
+            .cart ul {
+                list-style: none;
+                padding: 0;
+            }
 
-        footer {
-            text-align: center;
-            margin-top: 2rem;
-        }
-
-        a {
-            color: #007bff;
-        }
+            .cart li {
+                padding: 0.5rem 0;
+                border-bottom: 1px solid #ccc;
+            }
     </style>
 </head>
 <body>
-    <header>
-        <h1>Bienvenido, Cliente</h1>
-        <p><a href="/logout" style="color: white;">Cerrar sesión</a></p>
-    </header>
-    <div class="container">
-        <div class="products">
-            <h2>Productos disponibles</h2>
-            <div class="product">
-                <h3>Producto 1</h3>
-                <p>Descripción del producto 1.</p>
-                <p>Precio: $10</p>
-                <button onclick="addToCart('Producto 1', 10)">Agregar al carrito</button>
-            </div>
-            <div class="product">
-                <h3>Producto 2</h3>
-                <p>Descripción del producto 2.</p>
-                <p>Precio: $15</p>
-                <button onclick="addToCart('Producto 2', 15)">Agregar al carrito</button>
-            </div>
-            <!-- Puedes agregar más productos aquí -->
-        </div>
+    <h1>Bienvenido, Cliente</h1>
+    <a href="/logout" style="color: #007bff; display: block; text-align: center; margin-bottom: 20px;">Cerrar sesión</a>
 
-        <div class="cart">
-            <h2>Carrito de compras</h2>
-            <ul id="cart-items"></ul>
-            <p><strong>Total:</strong> $<span id="cart-total">0</span></p>
-            <button onclick="checkout()">Finalizar compra</button>
-        </div>
-    </div>
+    <section id="productosDisponibles">
+        <h2>Productos disponibles</h2>
+        <div id="listaProductos"></div>
+    </section>
 
-    <footer>
-        <p>&copy; 2025 Tienda Online</p>
-    </footer>
+    <section class="cart">
+        <h2>Carrito de compras</h2>
+        <ul id="cart-items"></ul>
+        <p><strong>Total:</strong> $<span id="cart-total">0.00</span></p>
+        <button onclick="checkout()">Finalizar compra</button>
+    </section>
 
+    <script src="/socket.io/socket.io.js"></script>
     <script>
+        const socket = io();
+
+        let productos = [];
         const cartItems = [];
-        function addToCart(product, price) {
-            cartItems.push({ product, price });
+
+        const listaProductos = document.getElementById('listaProductos');
+        const cartList = document.getElementById('cart-items');
+        const cartTotal = document.getElementById('cart-total');
+
+        socket.on('productosActualizados', (productosActualizados) => {
+            productos = productosActualizados;
+            renderProductos();
+        });
+
+        function renderProductos() {
+            listaProductos.innerHTML = '';
+            productos.forEach((p, index) => {
+                const div = document.createElement('div');
+                div.classList.add('product');
+                div.innerHTML = `
+              <h3>${p.nombre}</h3>
+              <p>${p.descripcion}</p>
+              <p>Precio: $${p.precio.toFixed(2)}</p>
+              <button onclick="addToCart(${index})">Agregar al carrito</button>
+            `;
+                listaProductos.appendChild(div);
+            });
+        }
+
+        function addToCart(index) {
+            cartItems.push(productos[index]);
             updateCart();
         }
 
         function updateCart() {
-            const cartList = document.getElementById("cart-items");
-            cartList.innerHTML = "";
+            cartList.innerHTML = '';
             let total = 0;
             cartItems.forEach(item => {
-                const li = document.createElement("li");
-                li.textContent = `${item.product} - $${item.price}`;
+                const li = document.createElement('li');
+                li.textContent = `${item.nombre} - $${item.precio.toFixed(2)}`;
                 cartList.appendChild(li);
-                total += item.price;
+                total += item.precio;
             });
-            document.getElementById("cart-total").textContent = total.toFixed(2);
+            cartTotal.textContent = total.toFixed(2);
         }
 
         function checkout() {
             if (cartItems.length === 0) {
-                alert("El carrito está vacío.");
+                alert('El carrito está vacío.');
                 return;
             }
-            alert("Compra realizada con éxito. Gracias por su pedido.");
+            alert('Compra realizada con éxito. Gracias por su pedido.');
             cartItems.length = 0;
             updateCart();
         }
