@@ -75,8 +75,8 @@ app.get('/logout', (req, res) => {
 io.on('connection', (socket) => {
     console.log('Usuario conectado:', socket.id);
 
+    // Enviar lista actual de productos y pedidos al conectar
     socket.emit('productosActualizados', productos);
-
     socket.emit('pedidosActualizados', pedidos); // <-- NUEVO: Enviar pedidos al conectar
 
     socket.on('nuevoProducto', (producto) => {
@@ -84,14 +84,15 @@ io.on('connection', (socket) => {
         io.emit('productosActualizados', productos);
     });
 
-    // <-- NUEVO: Registrar pedido del cliente
+    // <-- NUEVO: Registrar pedido del cliente y emitir actualización
     socket.on('nuevoPedido', (pedido) => {
         pedidos.push(pedido);
-        io.emit('pedidosActualizados', pedidos); // Enviar actualizaciones al admin
+        io.emit('pedidosActualizados', pedidos); // Enviar actualizaciones a todos (admin y clientes si quieres)
     });
+
+    // Aquí puedes mantener los eventos existentes, como eliminar producto, etc.
 });
 
 server.listen(PORT, () => {
     console.log(`Servidor escuchando en puerto ${PORT}`);
 });
-
