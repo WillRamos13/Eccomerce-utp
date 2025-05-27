@@ -10,12 +10,13 @@ const io = new Server(server);
 
 const PORT = process.env.PORT || 3000;
 
+// Ahora usuarios con fullname
 const users = [
-    { username: 'admin', password: 'admin123', role: 'admin' },
-    { username: 'cliente', password: 'cliente123', role: 'client' },
+    { username: 'admin', password: 'admin123', role: 'admin', fullname: 'Administrador Principal' },
+    { username: 'cliente', password: 'cliente123', role: 'client', fullname: 'Cliente Ejemplo' },
 ];
 
-// Productos almacenados en memoria (para ejemplo simple)
+// Productos y pedidos en memoria
 let productos = [];
 let pedidos = [];
 
@@ -31,6 +32,22 @@ app.use(
 
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Registro de usuarios (simplificado, sin persistencia real)
+app.post('/register', (req, res) => {
+    const { username, password, fullname } = req.body;
+
+    // Verificar si el username existe
+    const existe = users.some(u => u.username === username);
+    if (existe) {
+        return res.status(400).json({ message: 'El usuario ya existe' });
+    }
+
+    // Agregar nuevo usuario con rol cliente por defecto
+    users.push({ username, password, fullname, role: 'client' });
+
+    res.json({ message: 'Registro exitoso, ya puede iniciar sesión' });
+});
+
 // Login endpoint
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
@@ -39,8 +56,13 @@ app.post('/login', (req, res) => {
     );
 
     if (user) {
-        req.session.user = { username: user.username, role: user.role };
-        return res.json({ message: 'Login exitoso', role: user.role });
+        // Guardar usuario con fullname en sesión
+        req.session.user = {
+            username: user.username,
+            role: user.role,
+            fullname: user.fullname,
+        };
+        return res.json({ message: 'Login exitoso', role: user.role, fullname: user.fullname });
     } else {
         return res.status(401).json({ message: 'Usuario o contraseña incorrectos' });
     }
