@@ -81,17 +81,13 @@
     <!-- Registro de ventas -->
     <section id="registroVentas">
         <h2>Registro de Ventas</h2>
-        <div class="card">Venta #1 - Cliente Juan Pérez - $150.00</div>
-        <div class="card">Venta #2 - Cliente Ana Torres - $89.50</div>
-        <!-- Puedes reemplazar estos divs con datos dinámicos desde el backend -->
+        <div id="ventas"></div>
     </section>
 
     <!-- Pedidos -->
     <section id="pedidos">
         <h2>Pedidos</h2>
-        <div class="card">Pedido #101 - Cliente Carlos Ruiz - Estado: Enviado</div>
-        <div class="card">Pedido #102 - Cliente Laura Vega - Estado: Procesando</div>
-        <!-- También reemplazables con datos reales -->
+        <div id="pedidosLista"></div>
     </section>
 
     <script src="/socket.io/socket.io.js"></script>
@@ -100,6 +96,8 @@
 
         const form = document.getElementById('formProducto');
         const lista = document.getElementById('lista');
+        const ventasDiv = document.getElementById('ventas');
+        const pedidosDiv = document.getElementById('pedidosLista');
 
         form.addEventListener('submit', e => {
             e.preventDefault();
@@ -114,7 +112,6 @@
             form.reset();
         });
 
-        // Renderizar lista de productos
         socket.on('productosActualizados', (productos) => {
             lista.innerHTML = '';
             productos.forEach((p, index) => {
@@ -135,6 +132,23 @@
                 socket.emit('eliminarProducto', index);
             }
         }
+
+        // NUEVO: Recibir pedidos (que también sirven como ventas)
+        socket.on('pedidosActualizados', (pedidos) => {
+            ventasDiv.innerHTML = '';
+            pedidosDiv.innerHTML = '';
+            pedidos.forEach((pedido, i) => {
+                const venta = document.createElement('div');
+                venta.classList.add('card');
+                venta.textContent = `Venta #${i + 1} - Cliente ${pedido.cliente} - $${pedido.total.toFixed(2)}`;
+                ventasDiv.appendChild(venta);
+
+                const pedidoCard = document.createElement('div');
+                pedidoCard.classList.add('card');
+                pedidoCard.textContent = `Pedido #${i + 1} - Cliente ${pedido.cliente} - Estado: ${pedido.estado}`;
+                pedidosDiv.appendChild(pedidoCard);
+            });
+        });
     </script>
 </body>
 </html>

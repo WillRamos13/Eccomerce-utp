@@ -17,6 +17,7 @@ const users = [
 
 // Productos almacenados en memoria (para ejemplo simple)
 let productos = [];
+let pedidos = []; // <-- NUEVO: Registro de ventas
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -74,17 +75,23 @@ app.get('/logout', (req, res) => {
 io.on('connection', (socket) => {
     console.log('Usuario conectado:', socket.id);
 
-    // Cuando un cliente (cliente.html) se conecta, le enviamos la lista actual de productos
     socket.emit('productosActualizados', productos);
 
-    // Escuchamos cuando admin agrega un producto
+    socket.emit('pedidosActualizados', pedidos); // <-- NUEVO: Enviar pedidos al conectar
+
     socket.on('nuevoProducto', (producto) => {
         productos.push(producto);
-        // Enviar la lista actualizada a todos los clientes conectados
         io.emit('productosActualizados', productos);
+    });
+
+    // <-- NUEVO: Registrar pedido del cliente
+    socket.on('nuevoPedido', (pedido) => {
+        pedidos.push(pedido);
+        io.emit('pedidosActualizados', pedidos); // Enviar actualizaciones al admin
     });
 });
 
 server.listen(PORT, () => {
     console.log(`Servidor escuchando en puerto ${PORT}`);
 });
+
