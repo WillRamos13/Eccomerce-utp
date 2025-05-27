@@ -17,7 +17,7 @@ const users = [
 
 // Productos almacenados en memoria (para ejemplo simple)
 let productos = [];
-let pedidos = []; // <-- NUEVO: Registro de ventas
+let pedidos = [];
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -77,20 +77,31 @@ io.on('connection', (socket) => {
 
     // Enviar lista actual de productos y pedidos al conectar
     socket.emit('productosActualizados', productos);
-    socket.emit('pedidosActualizados', pedidos); // <-- NUEVO: Enviar pedidos al conectar
+    socket.emit('pedidosActualizados', pedidos);
 
     socket.on('nuevoProducto', (producto) => {
         productos.push(producto);
         io.emit('productosActualizados', productos);
     });
 
-    // <-- NUEVO: Registrar pedido del cliente y emitir actualización
-    socket.on('nuevoPedido', (pedido) => {
-        pedidos.push(pedido);
-        io.emit('pedidosActualizados', pedidos); // Enviar actualizaciones a todos (admin y clientes si quieres)
+    socket.on('eliminarProducto', (index) => {
+        if (index >= 0 && index < productos.length) {
+            productos.splice(index, 1);
+            io.emit('productosActualizados', productos);
+        }
     });
 
-    // Aquí puedes mantener los eventos existentes, como eliminar producto, etc.
+    socket.on('nuevoPedido', (pedido) => {
+        pedidos.push(pedido);
+        io.emit('pedidosActualizados', pedidos);
+    });
+
+    socket.on('cambiarEstadoPedido', ({ index, estado }) => {
+        if (index >= 0 && index < pedidos.length) {
+            pedidos[index].estado = estado;
+            io.emit('pedidosActualizados', pedidos);
+        }
+    });
 });
 
 server.listen(PORT, () => {

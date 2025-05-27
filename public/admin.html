@@ -22,7 +22,7 @@
             margin-bottom: 30px;
         }
 
-        input, textarea {
+        input, textarea, select {
             padding: 8px;
             font-size: 16px;
         }
@@ -59,6 +59,18 @@
             padding: 10px;
             margin-bottom: 10px;
         }
+
+        .pedidoItem {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+            .pedidoItem select {
+                margin-top: 5px;
+                padding: 5px;
+                font-size: 14px;
+            }
     </style>
 </head>
 <body>
@@ -118,11 +130,11 @@
                 const div = document.createElement('div');
                 div.classList.add('productoItem');
                 div.innerHTML = `
-                        <strong>${p.nombre}</strong>
-                        <p>${p.descripcion}</p>
-                        <p>Precio: $${p.precio.toFixed(2)}</p>
-                        <button onclick="eliminarProducto(${index})">Eliminar</button>
-                    `;
+                            <strong>${p.nombre}</strong>
+                            <p>${p.descripcion}</p>
+                            <p>Precio: $${p.precio.toFixed(2)}</p>
+                            <button onclick="eliminarProducto(${index})">Eliminar</button>
+                        `;
                 lista.appendChild(div);
             });
         });
@@ -133,20 +145,42 @@
             }
         }
 
-        // NUEVO: Recibir pedidos (que también sirven como ventas)
         socket.on('pedidosActualizados', (pedidos) => {
             ventasDiv.innerHTML = '';
             pedidosDiv.innerHTML = '';
             pedidos.forEach((pedido, i) => {
+                // Mostrar en ventas
                 const venta = document.createElement('div');
                 venta.classList.add('card');
                 venta.textContent = `Venta #${i + 1} - Cliente ${pedido.cliente} - $${pedido.total.toFixed(2)}`;
                 ventasDiv.appendChild(venta);
 
+                // Mostrar en pedidos con select para cambiar estado
                 const pedidoCard = document.createElement('div');
-                pedidoCard.classList.add('card');
-                pedidoCard.textContent = `Pedido #${i + 1} - Cliente ${pedido.cliente} - Estado: ${pedido.estado}`;
+                pedidoCard.classList.add('pedidoItem');
+                pedidoCard.innerHTML = `
+                        <strong>Pedido #${i + 1}</strong><br/>
+                        Cliente: ${pedido.cliente}<br/>
+                        Productos: ${pedido.productos.map(p => p.nombre).join(', ')}<br/>
+                        Total: $${pedido.total.toFixed(2)}<br/>
+                        Estado:
+                        <select data-index="${i}">
+                            <option value="Procesando" ${pedido.estado === 'Procesando' ? 'selected' : ''}>Procesando</option>
+                            <option value="Enviado" ${pedido.estado === 'Enviado' ? 'selected' : ''}>Enviado</option>
+                            <option value="Entregado" ${pedido.estado === 'Entregado' ? 'selected' : ''}>Entregado</option>
+                            <option value="Cancelado" ${pedido.estado === 'Cancelado' ? 'selected' : ''}>Cancelado</option>
+                        </select>
+                    `;
                 pedidosDiv.appendChild(pedidoCard);
+            });
+
+            // Agregar event listeners a los selects
+            document.querySelectorAll('#pedidosLista select').forEach(select => {
+                select.addEventListener('change', (e) => {
+                    const idx = e.target.getAttribute('data-index');
+                    const nuevoEstado = e.target.value;
+                    socket.emit('cambiarEstadoPedido', { index: parseInt(idx), estado: nuevoEstado });
+                });
             });
         });
     </script>
