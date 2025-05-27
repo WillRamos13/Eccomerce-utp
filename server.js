@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const http = require('http');
 const session = require('express-session');
+const sharedSession = require("express-socket.io-session");
 const { Server } = require("socket.io");
 
 const app = express();
@@ -10,53 +11,55 @@ const io = new Server(server);
 
 const PORT = process.env.PORT || 3000;
 
-// Ahora usuarios con fullname
+// Lista de usuarios (simulada)
 const users = [
     { username: 'admin', password: 'admin123', role: 'admin', fullname: 'Administrador Principal' },
     { username: 'cliente', password: 'cliente123', role: 'client', fullname: 'Cliente Ejemplo' },
 ];
 
-// Productos y pedidos en memoria
+// Datos en memoria
 let productos = [];
 let pedidos = [];
 
+// Configurar sesión
+const sessionMiddleware = session({
+    secret: 'mi_secreto_super_seguro',
+    resave: false,
+    saveUninitialized: false,
+});
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(
-    session({
-        secret: 'mi_secreto_super_seguro',
-        resave: false,
-        saveUninitialized: false,
-    })
-);
+app.use(sessionMiddleware);
 
+// Servir archivos estáticos
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Registro de usuarios (simplificado, sin persistencia real)
+// Compartir sesión con Socket.IO
+io.use(sharedSession(sessionMiddleware, {
+    autoSave: true
+}));
+
+// Registro (simulado)
 app.post('/register', (req, res) => {
     const { username, password, fullname } = req.body;
 
-    // Verificar si el username existe
     const existe = users.some(u => u.username === username);
     if (existe) {
         return res.status(400).json({ message: 'El usuario ya existe' });
     }
 
-    // Agregar nuevo usuario con rol cliente por defecto
     users.push({ username, password, fullname, role: 'client' });
 
     res.json({ message: 'Registro exitoso, ya puede iniciar sesión' });
 });
 
-// Login endpoint
+// Login
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
-    const user = users.find(
-        (u) => u.username === username && u.password === password
-    );
+    const user = users.find(u => u.username === username && u.password === password);
 
     if (user) {
-        // Guardar usuario con fullname en sesión
         req.session.user = {
             username: user.username,
             role: user.role,
@@ -68,7 +71,7 @@ app.post('/login', (req, res) => {
     }
 });
 
-// Middleware para proteger rutas según rol
+// Middleware por rol
 function authRole(role) {
     return (req, res, next) => {
         if (req.session.user && req.session.user.role === role) {
@@ -79,6 +82,7 @@ function authRole(role) {
     };
 }
 
+// Rutas protegidas
 app.get('/admin.html', authRole('admin'), (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
@@ -93,11 +97,10 @@ app.get('/logout', (req, res) => {
     });
 });
 
-// Socket.IO comunicación
+// Socket.IO
 io.on('connection', (socket) => {
     console.log('Usuario conectado:', socket.id);
 
-    // Enviar lista actual de productos y pedidos al conectar
     socket.emit('productosActualizados', productos);
     socket.emit('pedidosActualizados', pedidos);
 
@@ -114,7 +117,12 @@ io.on('connection', (socket) => {
     });
 
     socket.on('nuevoPedido', (pedido) => {
-        pedidos.push(pedido);
+        const nombreCliente = socket.handshake.session.user?.fullname || 'Cliente Anónimo';
+        const pedidoConNombre = {
+            ...pedido,
+            cliente: nombreCliente
+        };
+        pedidos.push(pedidoConNombre);
         io.emit('pedidosActualizados', pedidos);
     });
 
