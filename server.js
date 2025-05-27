@@ -71,6 +71,19 @@ app.post('/login', (req, res) => {
     }
 });
 
+// Ruta para obtener información de sesión (nombre, usuario, rol)
+app.get('/session-info', (req, res) => {
+    if (req.session.user) {
+        res.json({
+            username: req.session.user.username,
+            fullname: req.session.user.fullname,
+            role: req.session.user.role
+        });
+    } else {
+        res.status(401).json({ message: 'No autenticado' });
+    }
+});
+
 // Middleware por rol
 function authRole(role) {
     return (req, res, next) => {
